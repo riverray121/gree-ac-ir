@@ -1,0 +1,44 @@
+esphome:
+  name: ac-ram-bedroom
+  friendly_name: Ram's Bedroom AC
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fixed address outside the GL-MT3000 DHCP pool; HA's config entry
+  # points at this IP. Living room is .4, Elijah's bedroom is .5.
+  manual_ip:
+    static_ip: 192.168.8.6
+    gateway: 192.168.8.1
+    subnet: 255.255.255.0
+    dns1: 192.168.8.1
+
+external_components:
+  - source: components
+
+# IR LED driven by a KN2222A on GPIO4: GPIO4 -> 1k -> base, emitter to
+# GND, 5V -> LED -> 22R -> collector. IRremoteESP8266 bit-bangs the
+# carrier on the pin.
+# Empty name: the climate entity inherits the device's friendly name, so
+# the HA entity id is climate.ram_s_bedroom_ac.
+climate:
+  - platform: kelvinator_ac
+    name: ""
+    pin: 4
+    # Transmit slot 2s: living room is 0s, Elijah's bedroom is 1s. No two
+    # units are on the air at once, so multi-AC commands cannot collide.
+    # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
+    # is the floor.
+    tx_delay: 2000ms

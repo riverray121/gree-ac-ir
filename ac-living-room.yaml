@@ -1,0 +1,57 @@
+esphome:
+  name: ac-living-room
+  friendly_name: Living Room AC
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fixed address outside the GL-MT3000 DHCP pool; HA's config entry
+  # points at this IP.
+  manual_ip:
+    static_ip: 192.168.8.4
+    gateway: 192.168.8.1
+    subnet: 255.255.255.0
+    dns1: 192.168.8.1
+
+external_components:
+  - source: components
+
+# TL1838 IR receiver, OUT pin on GPIO14. Output idles high and pulls low
+# on carrier, hence inverted + pullup. Kept for capturing codes; captured
+# frames are archived in captured-codes.md.
+remote_receiver:
+  id: ir_rx
+  pin:
+    number: GPIO14
+    inverted: true
+    mode:
+      input: true
+      pullup: true
+  # AC frames exceed the 192-symbol default RMT buffer. The ESP32 has 512
+  # RMT symbols TOTAL shared with any RMT transmitter.
+  rmt_symbols: 384
+  idle: 25ms
+  dump:
+    - raw
+    - pronto
+
+# Grove IR emitter SIG on GPIO4, driven directly by IRremoteESP8266
+# (bit-banged carrier, no remote_transmitter on this pin).
+# Empty name: the climate entity inherits the device's friendly name, so
+# the HA entity id is climate.living_room_ac.
+climate:
+  - platform: kelvinator_ac
+    name: ""
+    pin: 4

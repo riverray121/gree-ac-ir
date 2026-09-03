@@ -1,0 +1,43 @@
+esphome:
+  name: ac-elijah-bedroom
+  friendly_name: Elijah's Bedroom AC
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fixed address outside the GL-MT3000 DHCP pool; HA's config entry
+  # points at this IP. Living room unit is .4.
+  manual_ip:
+    static_ip: 192.168.8.5
+    gateway: 192.168.8.1
+    subnet: 255.255.255.0
+    dns1: 192.168.8.1
+
+external_components:
+  - source: components
+
+# Grove IR emitter SIG on GPIO4 (5V VCC); IRremoteESP8266 bit-bangs the
+# carrier on the pin.
+# Empty name: the climate entity inherits the device's friendly name, so
+# the HA entity id is climate.elijah_s_bedroom_ac.
+climate:
+  - platform: kelvinator_ac
+    name: ""
+    pin: 4
+    # Transmit slot 1s: living room is 0s, Ram's bedroom is 2s. No two
+    # units are on the air at once, so multi-AC commands cannot collide.
+    # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
+    # is the floor.
+    tx_delay: 1000ms
