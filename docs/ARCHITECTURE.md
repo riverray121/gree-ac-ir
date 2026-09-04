@@ -46,7 +46,7 @@ The live script is mirrored in `docs/control_ac.script.json`; update the snapsho
 - Areas: `living_room`, `bedroom` (Elijah), `rams_bedroom`, one AC device each.
 - Aliases on each climate entity cover phrasing and STT variants (e.g. "Rom bedroom AC" for "Ram").
 - Dashboard `ac-hub`: one thermostat card per AC (hvac modes + fan modes; no swing, swing stays off).
-- Geofence: zone `near_home` (1 km). Automations `ac_geofence_on`/`ac_geofence_off` (living room, all listed persons; off only when every person is outside home and near_home) and `ac_elijah_bedroom_on`/`ac_elijah_bedroom_off` (Elijah only). Ram's bedroom automations require Ram's person entity.
+- Geofence: zone `near_home` (1 km). Rules: any member arriving → living room cool 25 (only if off); a member arriving → their own bedroom cool 25 (only if off); a member leaving → their own bedroom off regardless of who stays; the last member leaving → all ACs off. Automations: `ac_geofence_on` (living room, all listed persons), `ac_geofence_off` (all ACs, fires when every person is outside home and near_home), `ac_elijah_bedroom_on`/`ac_elijah_bedroom_off`. Ram's bedroom pair and his presence in the shared trigger lists require Ram's person entity.
 
 ## Physical constraints
 
