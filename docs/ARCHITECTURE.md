@@ -33,11 +33,13 @@ Known hazard: the LLM's spoken reply can assert success it never executed. Debug
 
 ## script.control_ac
 
-Fields: `ac_name` (free text), `hvac_mode` (off/cool/heat/fan_only/dry/heat_cool), `temperature` (optional, 16-30).
+Fields: `ac` (select: "living room" / "elijah bedroom" / "ram bedroom"), `hvac_mode` (off/cool/heat/fan_only/dry/heat_cool), `temperature` (optional, 16-30).
 
-Sequence: resolve `ac_name` → `climate.set_hvac_mode` → if a temperature was given and mode is not off, wait 1s → `climate.set_temperature`. Powering on before setting temperature is therefore explicit and does not rely on set-implies-on.
+Sequence: map `ac` to its entity through a static dict → `climate.set_hvac_mode` → if a temperature was given and mode is not off, wait 1s → `climate.set_temperature`. Powering on before setting temperature is therefore explicit and does not rely on set-implies-on.
 
-Name resolution: normalize (lowercase, apostrophes stripped, leading "the " dropped, "my "/"your " mapped to "elijahs " — revisit when a second resident's voice requests exist), token-score every climate entity against its name + area (a token matches by mutual prefix, so "ram" matches "rams"), best score wins. Zero score or a tie stops the script with a plain-text error naming the ACs (stop messages do not render templates), so the agent must ask instead of guessing. Substring matching is forbidden here: area "Bedroom" is a substring of "ram bedroom", which routes to the wrong AC. Without the possessive mapping, "my bedroom AC" ties between the two bedroom ACs and nothing transmits.
+The AC is a fixed select so the LLM does all language interpretation and the script does none: the tool schema constrains the choice to the three real units, which removes the free-text name-matching failure class entirely (substring matching once routed "Ram bedroom" to the wrong AC because area "Bedroom" is a substring). The script description tells the agent that "my bedroom" means Elijah's bedroom. A fourth AC requires adding one select option and one dict entry, and mirroring it in this file.
+
+The live script is mirrored in `docs/control_ac.script.json`; update the snapshot when the script changes.
 
 ## HA structure
 
