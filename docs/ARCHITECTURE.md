@@ -27,7 +27,9 @@ Interaction with `script.control_ac` (mode call, then temperature call 1s later)
 
 Pipeline "Local" (preferred): faster-whisper STT → `conversation.claude_conversation` (Anthropic integration, entry title "Claude") → piper TTS. `prefer_local_intents` is **false** and must stay false: the built-in intent agent is not used, by explicit decision.
 
-The conversation subentry prompt (stored in `.storage/core.config_entries` on the Pi; editing requires stopping the container) directs the agent: for any request to run an AC in a mode or at a temperature, call `script.control_ac` with the AC name as spoken, the mode, and the temperature; use the normal turn-off tool to switch off; never claim success without a successful tool call this turn.
+The conversation subentry prompt (stored in `.storage/core.config_entries` on the Pi; editing requires stopping the container) directs the agent: replies as short as possible, exactly "Done." after a successful action, no lists or markdown, one-sentence answers unless detail is requested; for any request to run an AC in a mode or at a temperature, call `script.control_ac` picking the matching ac option ("my bedroom" means elijah bedroom), the mode, and the temperature; use the normal turn-off tool to switch off; never claim success without a successful tool call this turn.
+
+STT: wyoming faster-whisper on the Pi runs `--model small-int8` with an `--initial-prompt` carrying the AC vocabulary (biases short-command transcription of "Ram"/"Elijah"). The Voice PE's finished-speaking detection is set to relaxed; the default cut the mic during mid-sentence pauses.
 
 Known hazard: the LLM's spoken reply can assert success it never executed. Debug voice issues by reproducing with the websocket command `conversation/process` against `conversation.claude_conversation` and diffing entity states before and after, never from the reply text.
 
