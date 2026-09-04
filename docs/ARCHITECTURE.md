@@ -37,7 +37,7 @@ Fields: `ac_name` (free text), `hvac_mode` (off/cool/heat/fan_only/dry/heat_cool
 
 Sequence: resolve `ac_name` → `climate.set_hvac_mode` → if a temperature was given and mode is not off, wait 1s → `climate.set_temperature`. Powering on before setting temperature is therefore explicit and does not rely on set-implies-on.
 
-Name resolution: normalize (lowercase, apostrophes stripped, leading "the " dropped), token-score every climate entity against its name + area (a token matches by mutual prefix, so "ram" matches "rams"), best score wins. Zero score or a tie stops the script with an error listing the ACs, so the agent must ask instead of guessing. Substring matching is forbidden here: area "Bedroom" is a substring of "ram bedroom", which routes to the wrong AC.
+Name resolution: normalize (lowercase, apostrophes stripped, leading "the " dropped, "my "/"your " mapped to "elijahs " — revisit when a second resident's voice requests exist), token-score every climate entity against its name + area (a token matches by mutual prefix, so "ram" matches "rams"), best score wins. Zero score or a tie stops the script with a plain-text error naming the ACs (stop messages do not render templates), so the agent must ask instead of guessing. Substring matching is forbidden here: area "Bedroom" is a substring of "ram bedroom", which routes to the wrong AC. Without the possessive mapping, "my bedroom AC" ties between the two bedroom ACs and nothing transmits.
 
 ## HA structure
 

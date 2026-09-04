@@ -42,3 +42,5 @@ climate:
     # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
     # is the floor.
     tx_delay: 2000ms
+    tx_log:
+      name: "IR TX Log"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/climate/climate.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/component.h"
 
 class IRKelvinatorAC;
@@ -22,6 +23,9 @@ class KelvinatorAC : public climate::Climate, public Component {
   // air simultaneously, so a multi-AC command cannot collide at a receiver
   // that can see more than one emitter.
   void set_tx_delay(uint32_t delay_ms) { this->tx_delay_ms_ = delay_ms; }
+  // Publishes a numbered entry for every IR transmission so HA's recorder
+  // keeps a history of what actually went on the air.
+  void set_tx_log(text_sensor::TextSensor *ts) { this->tx_log_ = ts; }
 
  protected:
   climate::ClimateTraits traits() override;
@@ -30,6 +34,8 @@ class KelvinatorAC : public climate::Climate, public Component {
 
   uint8_t pin_;
   uint32_t tx_delay_ms_{0};
+  uint32_t tx_count_{0};
+  text_sensor::TextSensor *tx_log_{nullptr};
   IRKelvinatorAC *ac_{nullptr};
 };
 

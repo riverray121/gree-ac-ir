@@ -1,12 +1,18 @@
 {
     "alias": "Control AC",
-    "description": "Turn any air conditioner on or off, set its mode (cool, heat, fan_only, dry, heat_cool), and optionally its target temperature, in one call. The ACs are one-way infrared units with no state feedback, so ALWAYS use this script when the user wants an AC running in a mode or at a temperature; it powers the unit on in the requested mode before applying the temperature. If it stops with an error, no AC was changed: relay the error and ask the user which AC they meant.",
+    "description": "Turn any air conditioner on or off, set its mode (cool, heat, fan_only, dry, heat_cool), and optionally its target temperature, in one call. The ACs are one-way infrared units with no state feedback, so ALWAYS use this script when the user wants an AC running in a mode or at a temperature; it powers the unit on in the requested mode before applying the temperature. Pick the ac option that matches the room or person the user means; 'my bedroom' means Elijah's bedroom.",
     "fields": {
-        "ac_name": {
-            "description": "The AC to control, by name or room as the user said it, e.g. bedroom or living room",
+        "ac": {
+            "description": "Which AC to control.",
             "required": true,
             "selector": {
-                "text": {}
+                "select": {
+                    "options": [
+                        "living room",
+                        "elijah bedroom",
+                        "ram bedroom"
+                    ]
+                }
             }
         },
         "hvac_mode": {
@@ -40,27 +46,13 @@
     "sequence": [
         {
             "variables": {
-                "ac": "{% set q = ac_name | lower | replace(\"'\",\"\") | replace(\"the \",\"\") %}{% set qt = q.split() %}{% set ns = namespace(best='', bestscore=0, tie=false) %}{% for e in states.climate %}{% set cand = ((e.name or '') ~ ' ' ~ (area_name(e.entity_id) or '')) | lower | replace(\"'\",\"\") %}{% set ct = cand.split() %}{% set s = namespace(score=0) %}{% for t in qt %}{% set hit = namespace(v=false) %}{% for c in ct %}{% if c.startswith(t) or t.startswith(c) %}{% set hit.v = true %}{% endif %}{% endfor %}{% if hit.v %}{% set s.score = s.score + 1 %}{% endif %}{% endfor %}{% if s.score > ns.bestscore %}{% set ns.best = e.entity_id %}{% set ns.bestscore = s.score %}{% set ns.tie = false %}{% elif s.score == ns.bestscore and s.score > 0 and ns.best != e.entity_id %}{% set ns.tie = true %}{% endif %}{% endfor %}{{ '' if ns.tie or ns.bestscore == 0 else ns.best }}"
+                "entity": "{{ {'living room': 'climate.living_room_ac', 'elijah bedroom': 'climate.elijah_s_bedroom_ac', 'ram bedroom': 'climate.ram_s_bedroom_ac'}[ac] }}"
             }
-        },
-        {
-            "if": [
-                {
-                    "condition": "template",
-                    "value_template": "{{ ac == '' }}"
-                }
-            ],
-            "then": [
-                {
-                    "stop": "No single air conditioner matched \"{{ ac_name }}\". Available: {{ states.climate | map(attribute='name') | join(', ') }}. Ask the user which one they meant instead of claiming success.",
-                    "error": true
-                }
-            ]
         },
         {
             "action": "climate.set_hvac_mode",
             "target": {
-                "entity_id": "{{ ac }}"
+                "entity_id": "{{ entity }}"
             },
             "data": {
                 "hvac_mode": "{{ hvac_mode }}"
@@ -82,7 +74,7 @@
                 {
                     "action": "climate.set_temperature",
                     "target": {
-                        "entity_id": "{{ ac }}"
+                        "entity_id": "{{ entity }}"
                     },
                     "data": {
                         "temperature": "{{ temperature }}"

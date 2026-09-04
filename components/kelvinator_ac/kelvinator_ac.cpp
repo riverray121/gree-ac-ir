@@ -134,6 +134,12 @@ void KelvinatorAC::transmit_state_() {
   // marginal signal path (distance, angle) still lands the command.
   ac->send(1);
   ESP_LOGD(TAG, "Sent Kelvinator state: %s", ac->toString().c_str());
+  if (this->tx_log_ != nullptr) {
+    this->tx_count_++;
+    char buf[240];
+    snprintf(buf, sizeof(buf), "#%u %s", (unsigned) this->tx_count_, ac->toString().c_str());
+    this->tx_log_->publish_state(buf);
+  }
 }
 
 }  // namespace kelvinator_ac

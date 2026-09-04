@@ -55,3 +55,5 @@ climate:
   - platform: kelvinator_ac
     name: ""
     pin: 4
+    tx_log:
+      name: "IR TX Log"
