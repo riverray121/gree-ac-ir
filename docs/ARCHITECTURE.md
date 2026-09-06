@@ -9,6 +9,7 @@ Three ESPHome ESP32 units transmit infrared to Gree GSE-50CI air conditioners (K
 | Living room | `ac-living-room` | 192.168.8.4 | `climate.living_room_ac` | Grove module, GPIO4; TL1838 receiver GPIO14 | 0s |
 | Elijah's bedroom | `ac-elijah-bedroom` | 192.168.8.5 | `climate.elijah_s_bedroom_ac` | Grove module, GPIO4 | 1s |
 | Ram's bedroom | `ac-ram-bedroom` | 192.168.8.6 | `climate.ram_s_bedroom_ac` | KN2222A + two 940nm LEDs in series (5V→LED→LED→22Ω→collector, base via 1kΩ from GPIO4) | 2s |
+| IR monitor (test rig) | `ir-monitor` | 192.168.8.7 | `sensor.ir_monitor_ir_rx_log` | none; TL1838 receiver GPIO14 (3V3), decodes every burst into an IR RX Log entry in the TX Log format, `INVALID` for undecodable bursts | n/a |
 
 Entity ids derive from the device friendly-name slug (climate `name: ""` inherits it), not the node name.
 
