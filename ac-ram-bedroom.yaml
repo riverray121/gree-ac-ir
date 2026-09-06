@@ -54,10 +54,8 @@ climate:
       one_space: 1687
       zero_space: 565
       gap: 20000
-    # Transmit slot 2s: living room is 0s, Elijah's bedroom is 1s. No two
-    # units are on the air at once, so multi-AC commands cannot collide.
-    # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
-    # is the floor.
-    tx_delay: 2000ms
+    # No transmit slot: IR does not reach the other rooms' receivers, so
+    # this unit transmits as soon as a command arrives.
+    tx_delay: 0ms
     tx_log:
       name: "IR TX Log"
