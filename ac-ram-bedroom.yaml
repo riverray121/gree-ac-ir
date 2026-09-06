@@ -54,8 +54,9 @@ climate:
       one_space: 1687
       zero_space: 565
       gap: 20000
-    # No transmit slot: IR does not reach the other rooms' receivers, so
-    # this unit transmits as soon as a command arrives.
-    tx_delay: 0ms
+    # Transmit slot. IR from one room reaches another room's AC, so units
+    # transmitting together jam each other; a frame with its repeat lasts
+    # ~1s on the air (living room is 0, Elijah's bedroom is 1200ms).
+    tx_delay: 2400ms
     tx_log:
       name: "IR TX Log"

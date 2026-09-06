@@ -6,9 +6,9 @@ Three ESPHome ESP32 units transmit infrared to Gree GSE-50CI air conditioners (K
 
 | Unit | Node | IP | Entity | Emitter | tx_delay |
 |---|---|---|---|---|---|
-| Living room | `ac-living-room` | 192.168.8.4 | `climate.living_room_ac` | Grove module, GPIO4; TL1838 receiver GPIO14 | 0 |
-| Elijah's bedroom | `ac-elijah-bedroom` | 192.168.8.5 | `climate.elijah_s_bedroom_ac` | Grove module, GPIO4 | 0 |
-| Ram's bedroom | `ac-ram-bedroom` | 192.168.8.6 | `climate.ram_s_bedroom_ac` | KN2222A + two 940nm LEDs in series (5V→LED→LED→22Ω→collector, base via 1kΩ from GPIO4) | 0 |
+| Living room | `ac-living-room` | 192.168.8.4 | `climate.living_room_ac` | Grove module, GPIO4; TL1838 receiver GPIO14 | 0s |
+| Elijah's bedroom | `ac-elijah-bedroom` | 192.168.8.5 | `climate.elijah_s_bedroom_ac` | Grove module, GPIO4 | 1.2s |
+| Ram's bedroom | `ac-ram-bedroom` | 192.168.8.6 | `climate.ram_s_bedroom_ac` | KN2222A + two 940nm LEDs in series (5V→LED→LED→22Ω→collector, base via 1kΩ from GPIO4) | 2.4s |
 
 Entity ids derive from the device friendly-name slug (climate `name: ""` inherits it), not the node name.
 
@@ -18,10 +18,10 @@ Wraps IRremoteESP8266's `IRKelvinatorAC` for the state-to-bytes encoding only. E
 
 - **Set-implies-on**: a target-temperature command while the unit is off switches it to cool and on. Any command that names a mode uses that mode. Consequence: any bare `climate.set_temperature` call (voice agent, dashboard slider, script) powers the AC on.
 - **Frame repeat**: every transmission sends the frame twice back-to-back (~0.8s on air). The AC beeps per accepted frame; one beep still means the command executed.
-- **Transmit slots (`tx_delay`)**: all units use 0. IR from one room does not reach another room's receiver, so simultaneous transmissions cannot collide; the option remains for a layout where two emitters share a line of sight.
-- **Coalescing**: commands are scheduled through one named timeout; with `tx_delay` 0 the transmission starts on the next loop pass, so back-to-back commands each go out.
+- **Transmit slots (`tx_delay`)**: living room 0, Elijah's bedroom 1.2 s, Ram's bedroom 2.4 s. IR from one room does reach Ram's AC: with all slots at 0, a three-room command left Ram's AC on its previous setting while the other two obeyed (verified 2026-09-06), and the same command with slots restored set all three. A frame with its repeat occupies ~1 s of air, so 1.2 s spacing is the floor.
+- **Coalescing**: commands are scheduled through one named timeout; a command arriving before the pending transmission replaces it, and only the final state is transmitted. Consequence: commands to the same unit spaced closer than its slot merge into one frame.
 
-Interaction with `script.control_ac` (mode call, then temperature call 1s later): two frames. Final state is correct in all cases.
+Interaction with `script.control_ac` (mode call, then temperature call 1s later): the living room sends two frames, the slotted units merge them into one. Final state is correct in all cases.
 
 ## Voice path
 
