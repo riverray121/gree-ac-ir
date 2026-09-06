@@ -14,7 +14,10 @@ static const char *const TAG = "kelvinator_ac";
 
 void KelvinatorAC::setup() {
   this->ac_ = new IRKelvinatorAC(this->pin_);
-  this->ac_->begin();
+  // With the RMT path the transmitter owns the pin; begin() would claim it
+  // as a plain output for the library's bit-banged send.
+  if (this->rmt_ == nullptr)
+    this->ac_->begin();
 
   auto restore = this->restore_state_();
   if (restore.has_value()) {
@@ -29,6 +32,10 @@ void KelvinatorAC::setup() {
 
 void KelvinatorAC::dump_config() {
   ESP_LOGCONFIG(TAG, "Kelvinator A/C (IRremoteESP8266) on GPIO%u", this->pin_);
+  if (this->rmt_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  RMT transmit: hdr %u/%u bit %u one %u zero %u gap %u", this->t_hdr_mark_,
+                  this->t_hdr_space_, this->t_bit_mark_, this->t_one_space_, this->t_zero_space_, this->t_gap_);
+  }
 }
 
 climate::ClimateTraits KelvinatorAC::traits() {
@@ -132,7 +139,11 @@ void KelvinatorAC::transmit_state_() {
   ac->setLight(true);
   // One repeat: every state goes out as two back-to-back frames, so a
   // marginal signal path (distance, angle) still lands the command.
-  ac->send(1);
+  if (this->rmt_ != nullptr) {
+    this->send_rmt_(ac->getRaw());
+  } else {
+    ac->send(1);
+  }
   ESP_LOGD(TAG, "Sent Kelvinator state: %s", ac->toString().c_str());
   if (this->tx_log_ != nullptr) {
     this->tx_count_++;
@@ -140,6 +151,44 @@ void KelvinatorAC::transmit_state_() {
     snprintf(buf, sizeof(buf), "#%u %s", (unsigned) this->tx_count_, ac->toString().c_str());
     this->tx_log_->publish_state(buf);
   }
+}
+
+// Same frame layout as IRsend::sendKelvinator: two halves, each a header,
+// 4 command bytes LSB first, the 3-bit footer 010, a gap, 4 data bytes and
+// a double gap; the whole frame once more as the repeat.
+void KelvinatorAC::send_rmt_(const uint8_t *data) {
+  auto call = this->rmt_->transmit();
+  auto *out = call.get_data();
+  out->set_carrier_frequency(38000);
+  auto bits = [&](const uint8_t *bytes, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+      for (uint8_t b = 0; b < 8; b++) {
+        out->mark(this->t_bit_mark_);
+        out->space(((bytes[i] >> b) & 1) ? this->t_one_space_ : this->t_zero_space_);
+      }
+    }
+  };
+  for (int r = 0; r < 2; r++) {
+    for (int half = 0; half < 2; half++) {
+      const uint8_t *blk = data + half * 8;
+      out->mark(this->t_hdr_mark_);
+      out->space(this->t_hdr_space_);
+      bits(blk, 4);
+      // footer bits 0b010, LSB first: 0, 1, 0
+      out->mark(this->t_bit_mark_);
+      out->space(this->t_zero_space_);
+      out->mark(this->t_bit_mark_);
+      out->space(this->t_one_space_);
+      out->mark(this->t_bit_mark_);
+      out->space(this->t_zero_space_);
+      out->mark(this->t_bit_mark_);
+      out->space(this->t_gap_);
+      bits(blk + 4, 4);
+      out->mark(this->t_bit_mark_);
+      out->space(this->t_gap_ * 2);
+    }
+  }
+  call.perform();
 }
 
 }  // namespace kelvinator_ac

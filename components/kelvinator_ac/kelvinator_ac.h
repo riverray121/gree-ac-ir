@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/components/climate/climate.h"
+#include "esphome/components/remote_base/remote_base.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/component.h"
 
@@ -26,17 +27,32 @@ class KelvinatorAC : public climate::Climate, public Component {
   // Publishes a numbered entry for every IR transmission so HA's recorder
   // keeps a history of what actually went on the air.
   void set_tx_log(text_sensor::TextSensor *ts) { this->tx_log_ = ts; }
+  // Hardware-timed path: frames go out through an RMT transmitter with these
+  // pulse lengths (microseconds); the library only supplies the state bytes.
+  void set_rmt(remote_base::RemoteTransmitterBase *tx, uint32_t header_mark, uint32_t header_space,
+               uint32_t bit_mark, uint32_t one_space, uint32_t zero_space, uint32_t gap) {
+    this->rmt_ = tx;
+    this->t_hdr_mark_ = header_mark;
+    this->t_hdr_space_ = header_space;
+    this->t_bit_mark_ = bit_mark;
+    this->t_one_space_ = one_space;
+    this->t_zero_space_ = zero_space;
+    this->t_gap_ = gap;
+  }
 
  protected:
   climate::ClimateTraits traits() override;
   void control(const climate::ClimateCall &call) override;
   void transmit_state_();
+  void send_rmt_(const uint8_t *data);
 
   uint8_t pin_;
   uint32_t tx_delay_ms_{0};
   uint32_t tx_count_{0};
   text_sensor::TextSensor *tx_log_{nullptr};
   IRKelvinatorAC *ac_{nullptr};
+  remote_base::RemoteTransmitterBase *rmt_{nullptr};
+  uint32_t t_hdr_mark_{0}, t_hdr_space_{0}, t_bit_mark_{0}, t_one_space_{0}, t_zero_space_{0}, t_gap_{0};
 };
 
 }  // namespace kelvinator_ac

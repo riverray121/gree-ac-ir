@@ -29,14 +29,31 @@ external_components:
   - source: components
 
 # IR LED driven by a KN2222A on GPIO4: GPIO4 -> 1k -> base, emitter to
-# GND, 5V -> LED -> 22R -> collector. IRremoteESP8266 bit-bangs the
-# carrier on the pin.
+# GND, 5V -> LED -> 22R -> collector.
+# Frames go out through the RMT peripheral (hardware timing) with pulse
+# lengths measured from the YAP2F remote at the AC's receiver, corrected
+# for the receiver's own mark/space bias. The library only supplies the
+# state bytes.
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4
+  carrier_duty_percent: 50%
+  rmt_symbols: 128
+
 # Empty name: the climate entity inherits the device's friendly name, so
 # the HA entity id is climate.ram_s_bedroom_ac.
 climate:
   - platform: kelvinator_ac
     name: ""
     pin: 4
+    transmitter_id: ir_tx
+    timing:
+      header_mark: 9000
+      header_space: 4515
+      bit_mark: 633
+      one_space: 1687
+      zero_space: 565
+      gap: 20000
     # Transmit slot 2s: living room is 0s, Elijah's bedroom is 1s. No two
     # units are on the air at once, so multi-AC commands cannot collide.
     # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
