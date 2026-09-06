@@ -28,18 +28,30 @@ wifi:
 external_components:
   - source: components
 
-# Grove IR emitter SIG on GPIO4 (5V VCC); IRremoteESP8266 bit-bangs the
-# carrier on the pin.
+# Grove IR emitter SIG on GPIO4 (5V VCC). Frames go out through the RMT
+# peripheral (hardware timing) with pulse lengths measured from the YAP2F
+# remote at the AC's receiver; the library only supplies the state bytes.
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4
+  carrier_duty_percent: 50%
+  rmt_symbols: 128
+
 # Empty name: the climate entity inherits the device's friendly name, so
 # the HA entity id is climate.elijah_s_bedroom_ac.
 climate:
   - platform: kelvinator_ac
     name: ""
     pin: 4
-    # Transmit slot 1s: living room is 0s, Ram's bedroom is 2s. No two
-    # units are on the air at once, so multi-AC commands cannot collide.
-    # A full transmission (frame + repeat) lasts ~0.8s, so 1s slot spacing
-    # is the floor.
-    tx_delay: 1000ms
+    transmitter_id: ir_tx
+    timing:
+      header_mark: 9000
+      header_space: 4515
+      bit_mark: 633
+      one_space: 1687
+      zero_space: 565
+      gap: 20000
+    # No transmit slot: IR does not reach the other rooms' receivers.
+    tx_delay: 0ms
     tx_log:
       name: "IR TX Log"

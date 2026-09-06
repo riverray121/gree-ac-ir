@@ -47,13 +47,29 @@ remote_receiver:
     - raw
     - pronto
 
-# Grove IR emitter SIG on GPIO4, driven directly by IRremoteESP8266
-# (bit-banged carrier, no remote_transmitter on this pin).
+# Grove IR emitter SIG on GPIO4 (5V VCC). Frames go out through the RMT
+# peripheral (hardware timing) with pulse lengths measured from the YAP2F
+# remote at the AC's receiver; the library only supplies the state bytes.
+# 64 TX symbols + 384 RX symbols stay inside the ESP32's 512 RMT total.
+remote_transmitter:
+  id: ir_tx
+  pin: GPIO4
+  carrier_duty_percent: 50%
+  rmt_symbols: 64
+
 # Empty name: the climate entity inherits the device's friendly name, so
 # the HA entity id is climate.living_room_ac.
 climate:
   - platform: kelvinator_ac
     name: ""
     pin: 4
+    transmitter_id: ir_tx
+    timing:
+      header_mark: 9000
+      header_space: 4515
+      bit_mark: 633
+      one_space: 1687
+      zero_space: 565
+      gap: 20000
     tx_log:
       name: "IR TX Log"
