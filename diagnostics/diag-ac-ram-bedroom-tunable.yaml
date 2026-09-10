@@ -26,7 +26,7 @@ wifi:
     dns1: 192.168.8.1
 
 external_components:
-  - source: components
+  - source: ../components
 
 # IR LED driven by a KN2222A on GPIO4: GPIO4 -> 1k -> base, emitter to
 # GND, 5V -> LED -> 22R -> collector.

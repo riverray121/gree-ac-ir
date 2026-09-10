@@ -19,3 +19,7 @@ Python scripts run on the Mac from a working directory that holds the rig's log 
 - `diag_irdecode.py LOG`: pulse statistics for every frame in a log; `diag_summarize.py out.csv`: batch summary.
 
 Reference numbers from the YAP2F remote measured at the receiver (10 presses, 36 half-frames): header 8993/4490, bit mark 653, zero space 553, one space 1657, block gap 19989, all within 20 us.
+
+## diag-ac-ram-bedroom-tunable.yaml
+
+Ram's unit with the production transmit path plus live knobs exposed as Home Assistant entities: carrier frequency, frame repeats, mark-length bias, the pause between message halves, a button that replays the YAP2F remote's captured power-off frame byte for byte, and a sensor showing the emitter pin's idle level. Flash it to sweep those parameters against a misbehaving AC without recompiling; flash `ac-ram-bedroom.yaml` to return to production.
