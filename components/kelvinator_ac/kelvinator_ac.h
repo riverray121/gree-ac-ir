@@ -46,6 +46,23 @@ class KelvinatorAC : public climate::Climate, public Component {
   void transmit_state_();
   void send_rmt_(const uint8_t *data);
 
+ public:
+  // Live-tunable RMT carrier and frame count, for finding what a marginal
+  // receiver accepts.
+  void set_carrier_hz(uint32_t hz) { this->carrier_hz_ = hz; }
+  void set_repeats(uint8_t n) { this->repeats_ = n; }
+  // Adds to every mark and subtracts from every bit space (bit periods stay
+  // constant): compensates a receiver that shortens weak-signal marks.
+  void set_mark_bias(int32_t us) { this->mark_bias_ = us; }
+  // Silence between the two halves of a message and before the repeat.
+  void set_half_gap(uint32_t us) { this->half_gap_ = us; }
+
+ protected:
+  uint32_t carrier_hz_{38000};
+  uint8_t repeats_{2};
+  int32_t mark_bias_{0};
+  uint32_t half_gap_{40000};
+
   uint8_t pin_;
   uint32_t tx_delay_ms_{0};
   uint32_t tx_count_{0};

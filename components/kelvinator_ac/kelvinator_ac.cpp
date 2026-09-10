@@ -159,33 +159,36 @@ void KelvinatorAC::transmit_state_() {
 void KelvinatorAC::send_rmt_(const uint8_t *data) {
   auto call = this->rmt_->transmit();
   auto *out = call.get_data();
-  out->set_carrier_frequency(38000);
+  out->set_carrier_frequency(this->carrier_hz_);
+  const int32_t b = this->mark_bias_;
+  auto mark = [&](uint32_t us) { out->mark(us + b); };
+  auto space = [&](uint32_t us) { out->space(us - b); };
   auto bits = [&](const uint8_t *bytes, size_t n) {
     for (size_t i = 0; i < n; i++) {
-      for (uint8_t b = 0; b < 8; b++) {
-        out->mark(this->t_bit_mark_);
-        out->space(((bytes[i] >> b) & 1) ? this->t_one_space_ : this->t_zero_space_);
+      for (uint8_t bit = 0; bit < 8; bit++) {
+        mark(this->t_bit_mark_);
+        space(((bytes[i] >> bit) & 1) ? this->t_one_space_ : this->t_zero_space_);
       }
     }
   };
-  for (int r = 0; r < 2; r++) {
+  for (int r = 0; r < this->repeats_; r++) {
     for (int half = 0; half < 2; half++) {
       const uint8_t *blk = data + half * 8;
-      out->mark(this->t_hdr_mark_);
-      out->space(this->t_hdr_space_);
+      mark(this->t_hdr_mark_);
+      space(this->t_hdr_space_);
       bits(blk, 4);
       // footer bits 0b010, LSB first: 0, 1, 0
-      out->mark(this->t_bit_mark_);
-      out->space(this->t_zero_space_);
-      out->mark(this->t_bit_mark_);
-      out->space(this->t_one_space_);
-      out->mark(this->t_bit_mark_);
-      out->space(this->t_zero_space_);
-      out->mark(this->t_bit_mark_);
+      mark(this->t_bit_mark_);
+      space(this->t_zero_space_);
+      mark(this->t_bit_mark_);
+      space(this->t_one_space_);
+      mark(this->t_bit_mark_);
+      space(this->t_zero_space_);
+      mark(this->t_bit_mark_);
       out->space(this->t_gap_);
       bits(blk + 4, 4);
-      out->mark(this->t_bit_mark_);
-      out->space(this->t_gap_ * 2);
+      mark(this->t_bit_mark_);
+      out->space(this->half_gap_);
     }
   }
   call.perform();

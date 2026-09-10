@@ -28,8 +28,7 @@ wifi:
 external_components:
   - source: components
 
-# IR LED driven by a KN2222A on GPIO4: GPIO4 -> 1k -> base, emitter to
-# GND, 5V -> LED -> 22R -> collector.
+# Grove IR emitter SIG on GPIO4 (5V VCC), same module as the other rooms.
 # Frames go out through the RMT peripheral (hardware timing) with pulse
 # lengths measured from the YAP2F remote at the AC's receiver, corrected
 # for the receiver's own mark/space bias. The library only supplies the
@@ -56,7 +55,7 @@ climate:
       gap: 20000
     # Transmit slot. IR from one room reaches another room's AC, so units
     # transmitting together jam each other; a frame with its repeat lasts
-    # ~1s on the air (living room is 0, Elijah's bedroom is 1200ms).
-    tx_delay: 2400ms
+    # ~1s on the air; 1.5s spacing leaves margin for API delivery jitter (living room is 0, Elijah's bedroom is 1500ms).
+    tx_delay: 3000ms
     tx_log:
       name: "IR TX Log"

@@ -53,7 +53,7 @@ climate:
       gap: 20000
     # Transmit slot. IR from one room reaches another room's AC, so units
     # transmitting together jam each other; a frame with its repeat lasts
-    # ~1s on the air (living room is 0, Ram's bedroom is 2400ms).
-    tx_delay: 1200ms
+    # ~1s on the air; 1.5s spacing leaves margin for API delivery jitter (living room is 0, Ram's bedroom is 3000ms).
+    tx_delay: 1500ms
     tx_log:
       name: "IR TX Log"
