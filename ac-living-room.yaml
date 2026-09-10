@@ -28,25 +28,6 @@ wifi:
 external_components:
   - source: components
 
-# TL1838 IR receiver, OUT pin on GPIO14. Output idles high and pulls low
-# on carrier, hence inverted + pullup. Kept for capturing codes; captured
-# frames are archived in captured-codes.md.
-remote_receiver:
-  id: ir_rx
-  pin:
-    number: GPIO14
-    inverted: true
-    mode:
-      input: true
-      pullup: true
-  # AC frames exceed the 192-symbol default RMT buffer. The ESP32 has 512
-  # RMT symbols TOTAL shared with any RMT transmitter.
-  rmt_symbols: 384
-  idle: 25ms
-  dump:
-    - raw
-    - pronto
-
 # Grove IR emitter SIG on GPIO4 (5V VCC). Frames go out through the RMT
 # peripheral (hardware timing) with pulse lengths measured from the YAP2F
 # remote at the AC's receiver; the library only supplies the state bytes.

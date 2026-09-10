@@ -6,7 +6,7 @@ Three ESPHome ESP32 units transmit infrared to Gree GSE-50CI air conditioners (K
 
 | Unit | Node | IP | Entity | Emitter | tx_delay |
 |---|---|---|---|---|---|
-| Living room | `ac-living-room` | 192.168.8.4 | `climate.living_room_ac` | Grove module, GPIO4; TL1838 receiver GPIO14 | 0s |
+| Living room | `ac-living-room` | 192.168.8.4 | `climate.living_room_ac` | Grove module, GPIO4 | 0s |
 | Elijah's bedroom | `ac-elijah-bedroom` | 192.168.8.5 | `climate.elijah_s_bedroom_ac` | Grove module, GPIO4 | 1.5s |
 | Ram's bedroom | `ac-ram-bedroom` | 192.168.8.6 | `climate.ram_s_bedroom_ac` | Grove module, GPIO4 | 3s |
 
@@ -54,4 +54,4 @@ The live script is mirrored in `docs/control_ac.script.json`; update the snapsho
 
 - Power the ESP32s from wall USB adapters. Power banks auto-shut off on the ESP32's low draw.
 - The ESP32 has 512 RMT symbols total shared between remote_receiver and remote_transmitter; a receiver configured with all 512 makes a transmitter fail init with `ESP_ERR_NOT_FOUND`.
-- The AC's receiver loses sensitivity while the compressor runs (verified 2026-09-06: a hand-built KN2222A + two-LED emitter at ~90 mA went fully deaf 3 to 4 minutes after a cooling start while the remote still worked, with frames arriving byte-perfect at a receiver taped beside the window; the same unit with a Grove module passed 10 minutes at 17 °C, 60/60). Emitter output must clear that raised threshold from the mounting distance; Grove modules do, the hand-built stage did not. Direct sunlight blinds the receiver the same way.
+- The AC's receiver loses sensitivity while the compressor runs, so the emitter's output must clear that raised threshold from the mounting distance; a Grove module does, a hand-built transistor-and-LED stage at ~90 mA did not (it went deaf 3 to 4 minutes after a cooling start while the remote still worked). Direct sunlight blinds the receiver the same way. Tooling to measure this is in `diagnostics/`.
